@@ -55,7 +55,6 @@ omarchy bar move io.github.mohuddle.myjournal --section right
 - **New**: another empty session.
 - Search box: filter by id, timestamp, or content.
 - Click an index row: open that note.
-- Escape closes the panel and saves.
 
 ## Remove
 
