@@ -69,8 +69,8 @@ BarWidget {
     id: button
     anchors.fill: parent
     bar: root.bar
-    tooltipText: journal.locked ? "My Journal · locked" : "My Journal"
-    foreground: journal.locked ? Qt.darker(root.barForeground, 1.25) : root.barForeground
+    tooltipText: "My Journal"
+    foreground: root.barForeground
     iconComponent: Component {
       JournalIcon {
         anchors.fill: parent
