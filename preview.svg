@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540">
+  <rect width="960" height="540" fill="#1c1916"/>
+  <rect x="40" y="40" width="880" height="460" rx="18" fill="#2a2520" stroke="#d4b15a" stroke-width="2"/>
+  <rect x="88" y="88" width="54" height="68" rx="4" fill="none" stroke="#d4b15a" stroke-width="4"/>
+  <line x1="102" y1="112" x2="128" y2="112" stroke="#d4b15a" stroke-width="3"/>
+  <line x1="102" y1="126" x2="128" y2="126" stroke="#d4b15a" stroke-width="3"/>
+  <line x1="102" y1="140" x2="118" y2="140" stroke="#d4b15a" stroke-width="3"/>
+  <text x="168" y="118" fill="#f4efe6" font-family="serif" font-size="32" font-weight="700">My Journal</text>
+  <text x="168" y="148" fill="#d4b15a" font-family="sans-serif" font-size="16">#2 · 2026-08-19 19:30</text>
+  <rect x="88" y="180" width="70" height="32" rx="6" fill="none" stroke="#d4b15a"/>
+  <text x="107" y="201" fill="#f4efe6" font-family="sans-serif" font-size="14">New</text>
+  <rect x="168" y="180" width="280" height="32" rx="6" fill="none" stroke="#6f675e"/>
+  <text x="180" y="201" fill="#b9b0a4" font-family="sans-serif" font-size="14">Search notes</text>
+  <text x="88" y="248" fill="#d4b15a" font-family="sans-serif" font-size="14">#2</text>
+  <text x="88" y="268" fill="#d4b15a" font-family="sans-serif" font-size="13">Fixed the age encryption…</text>
+  <text x="88" y="304" fill="#f4efe6" font-family="sans-serif" font-size="14">#1</text>
+  <text x="88" y="324" fill="#b9b0a4" font-family="sans-serif" font-size="13">Had a great brainstorming…</text>
+  <text x="430" y="248" fill="#b9b0a4" font-family="sans-serif" font-size="13">#2 · 2026-08-19 19:30</text>
+  <text x="430" y="292" fill="#f4efe6" font-family="serif" font-size="18">Fixed the age encryption bug. Now</text>
+  <text x="430" y="322" fill="#f4efe6" font-family="serif" font-size="18">working on the UI layout.</text>
+</svg>

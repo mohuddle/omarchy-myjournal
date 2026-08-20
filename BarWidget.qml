@@ -1,0 +1,85 @@
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import qs.Commons
+import qs.Ui
+
+BarWidget {
+  id: root
+  moduleName: "io.github.mohuddle.myjournal"
+
+  Service {
+    id: journal
+    settings: root.settings
+  }
+
+  readonly property color barForeground: bar ? bar.barForeground : Color.foreground
+  readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
+  readonly property bool popoutSwitchClosing: panelLoader.item ? panelLoader.item.popoutSwitchClosing === true : false
+
+  function open() {
+    journal.begin()
+    if (panelLoader.item) panelLoader.item.open()
+  }
+  function close() {
+    journal.saveNow()
+    if (panelLoader.item) panelLoader.item.close()
+  }
+  function togglePanel() {
+    if (panelLoader.item) panelLoader.item.toggle()
+  }
+  function closeForPopoutSwitch() {}
+  function injectPanel() {
+    var target = panelLoader.item
+    if (!target) return
+    if ("bar" in target) target.bar = root.bar
+    if ("settings" in target) target.settings = root.settings
+    if ("anchorItem" in target) target.anchorItem = button
+    if ("hostWidget" in target) target.hostWidget = root
+    if ("service" in target) target.service = journal
+  }
+
+  implicitWidth: button.implicitWidth
+  implicitHeight: button.implicitHeight
+  onBarChanged: injectPanel()
+  onSettingsChanged: injectPanel()
+
+  Loader {
+    id: panelLoader
+    active: true
+    source: Qt.resolvedUrl("Panel.qml")
+    visible: false
+    onLoaded: {
+      root.injectPanel()
+      Qt.callLater(root.injectPanel)
+    }
+  }
+
+  IpcHandler {
+    target: "io.github.mohuddle.myjournal"
+    function open(): void { root.open() }
+    function close(): void { root.close() }
+    function show(): void { root.open() }
+    function hide(): void { root.close() }
+    function toggle(): void { root.togglePanel() }
+    function status(): string { return journal.statusText }
+  }
+
+  BarIconButton {
+    id: button
+    anchors.fill: parent
+    bar: root.bar
+    tooltipText: journal.locked ? "My Journal · locked" : "My Journal"
+    foreground: journal.locked ? Qt.darker(root.barForeground, 1.25) : root.barForeground
+    iconComponent: Component {
+      JournalIcon {
+        anchors.fill: parent
+        foreground: button.foreground
+        size: Math.min(width, height)
+      }
+    }
+    onPressed: function(b) {
+      if (b === Qt.LeftButton) root.togglePanel()
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.mohuddle.myjournal",
+  "name": "My Journal",
+  "version": "0.1.0",
+  "author": "mohuddle",
+  "description": "Stream-of-consciousness journal: a new dated note on open, searchable history, autosave, optional age encryption at rest.",
+  "license": "MIT",
+  "tags": ["journal", "notes", "age"],
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "BarWidget.qml" },
+  "barWidget": {
+    "displayName": "My Journal",
+    "description": "Dated notes with search and optional age-encrypted JSON at rest",
+    "category": "Productivity",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
