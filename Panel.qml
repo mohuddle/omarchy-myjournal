@@ -142,6 +142,7 @@ Panel {
           spacing: Style.space(10)
 
           Row {
+            id: headerRow
             width: parent.width
             spacing: Style.space(10)
 
@@ -171,55 +172,50 @@ Panel {
             }
           }
 
-          Item {
-            width: parent.width
-            height: Math.max(newBtn.implicitHeight, todoBtn.implicitHeight, searchField.implicitHeight)
-
-            Button {
-              id: newBtn
-              text: "New"
-              bordered: true
-              foreground: root.foreground
-              anchors.left: parent.left
-              anchors.verticalCenter: parent.verticalCenter
-              onClicked: root.newNote()
-            }
-            Button {
-              id: todoBtn
-              text: "ToDo"
-              bordered: true
-              foreground: root.accent
-              anchors.left: newBtn.right
-              anchors.leftMargin: Style.space(8)
-              anchors.verticalCenter: parent.verticalCenter
-              onClicked: root.newTodo()
-            }
-            TextField {
-              id: searchField
-              anchors.left: todoBtn.right
-              anchors.right: parent.right
-              anchors.leftMargin: Style.space(8)
-              anchors.verticalCenter: parent.verticalCenter
-              foreground: root.foreground
-              placeholderText: "Search"
-              text: root.searchText
-              onTextChanged: root.searchText = text
-            }
-          }
-
           Row {
             width: parent.width
-            height: parent.height - Style.space(86)
+            height: Math.max(0, parent.height - headerRow.height - parent.spacing)
             spacing: Style.space(12)
 
-            ListView {
-              id: indexList
+            Column {
               width: Style.space(176)
               height: parent.height
-              clip: true
-              spacing: Style.space(2)
-              boundsBehavior: Flickable.StopAtBounds
-              model: root.listedEntries
+              spacing: Style.space(8)
+
+              Item {
+                id: toolRow
+                width: parent.width
+                height: Math.max(newBtn.implicitHeight, todoBtn.implicitHeight, searchField.implicitHeight)
+
+                Button {
+                  id: newBtn
+                  text: "New"
+                  bordered: true
+                  foreground: root.foreground
+                  anchors.left: parent.left
+                  anchors.verticalCenter: parent.verticalCenter
+                  onClicked: root.newNote()
+                }
+                Button {
+                  id: todoBtn
+                  text: "ToDo"
+                  bordered: true
+                  foreground: root.accent
+                  anchors.left: newBtn.right
+                  anchors.leftMargin: Style.space(8)
+                  anchors.verticalCenter: parent.verticalCenter
+                  onClicked: root.newTodo()
+                }
+              }
+
+              ListView {
+                id: indexList
+                width: parent.width
+                height: Math.max(0, parent.height - toolRow.height - parent.spacing)
+                clip: true
+                spacing: Style.space(2)
+                boundsBehavior: Flickable.StopAtBounds
+                model: root.listedEntries
               delegate: Item {
                 required property var modelData
                 width: indexList.width
@@ -273,12 +269,23 @@ Panel {
                   onClicked: root.openEntry(modelData.id)
                 }
               }
+              }
+
             }
 
             Column {
-              width: Math.max(0, parent.width - indexList.width - parent.spacing)
+              width: Math.max(0, parent.width - Style.space(176) - parent.spacing)
               height: parent.height
               spacing: Style.space(6)
+
+              TextField {
+                id: searchField
+                width: parent.width
+                foreground: root.foreground
+                placeholderText: "Search"
+                text: root.searchText
+                onTextChanged: root.searchText = text
+              }
 
               Row {
                 id: editorHeader
@@ -307,7 +314,7 @@ Panel {
 
               BorderSurface {
                 width: parent.width
-                height: Math.max(0, parent.height - editorHeader.height - parent.spacing)
+                height: Math.max(0, parent.height - searchField.height - editorHeader.height - parent.spacing * 2)
                 color: "transparent"
                 borderSpec: Border.controlSpec(editor.activeFocus ? "focus" : "normal", root.foreground, root.accent)
                 radius: Style.cornerRadius
