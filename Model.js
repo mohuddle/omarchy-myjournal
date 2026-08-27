@@ -1,5 +1,6 @@
 // Journal list math. Locale- and Qt-free so tests/model.test.js can run it
-// under node. Each entry is { id, timestamp, content }.
+// under node. Each entry is { id, timestamp, content, kind, done? }.
+// kind is "note" (default) or "todo". done is only stored on todos.
 
 function parseJournal(raw) {
   try {
@@ -34,11 +35,30 @@ function isoStamp(date) {
   return date.toISOString()
 }
 
+function entryKind(entry) {
+  return entry && entry.kind === "todo" ? "todo" : "note"
+}
+
+function isTodo(entry) {
+  return entryKind(entry) === "todo"
+}
+
 function newEntry(date, id) {
   return {
     id: String(id || "1"),
     timestamp: isoStamp(date || new Date()),
-    content: ""
+    content: "",
+    kind: "note"
+  }
+}
+
+function newTodo(date, id) {
+  return {
+    id: String(id || "1"),
+    timestamp: isoStamp(date || new Date()),
+    content: "",
+    kind: "todo",
+    done: false
   }
 }
 
@@ -47,11 +67,14 @@ function isBlank(entry) {
 }
 
 function copyEntry(entry) {
-  return {
+  var out = {
     id: String(entry.id),
     timestamp: String(entry.timestamp || ""),
-    content: String(entry.content || "")
+    content: String(entry.content || ""),
+    kind: entryKind(entry)
   }
+  if (out.kind === "todo") out.done = !!entry.done
+  return out
 }
 
 function upsert(entries, entry) {
@@ -89,6 +112,13 @@ function findById(entries, id) {
   return null
 }
 
+function toggleDone(entries, id) {
+  var found = findById(entries, id)
+  if (!found || !isTodo(found)) return entries || []
+  found.done = !found.done
+  return upsert(entries, found)
+}
+
 function preview(content, limit) {
   var text = String(content || "").replace(/\s+/g, " ").trim()
   var max = limit === undefined ? 72 : limit
@@ -97,13 +127,26 @@ function preview(content, limit) {
   return text.slice(0, max).replace(/\s+$/, "") + "…"
 }
 
+function previewEntry(entry, limit) {
+  if (isBlank(entry)) return isTodo(entry) ? "Empty todo" : "Empty note"
+  return preview(entry.content, limit)
+}
+
+function indexMark(entry) {
+  if (!isTodo(entry)) return ""
+  return entry.done ? "[x] " : "[ ] "
+}
+
 function matchesQuery(entry, query) {
   var q = String(query || "").trim().toLowerCase()
   if (q === "") return true
   if (!entry) return false
-  return String(entry.id).toLowerCase().indexOf(q) >= 0
-    || String(entry.timestamp || "").toLowerCase().indexOf(q) >= 0
-    || String(entry.content || "").toLowerCase().indexOf(q) >= 0
+  var hay = String(entry.id).toLowerCase()
+    + " " + String(entry.timestamp || "").toLowerCase()
+    + " " + String(entry.content || "").toLowerCase()
+    + " " + entryKind(entry)
+  if (isTodo(entry)) hay += entry.done ? " done" : " open"
+  return hay.indexOf(q) >= 0
 }
 
 function filterEntries(entries, query) {
@@ -121,7 +164,8 @@ function notesTxt(entries) {
   var parts = []
   for (var i = 0; i < list.length; i++) {
     var e = list[i]
-    parts.push("======= " + e.id + " · " + e.timestamp + " =======\n" + String(e.content || "").replace(/\s+$/, "") + "\n")
+    var mark = isTodo(e) ? (e.done ? " · todo [x]" : " · todo") : ""
+    parts.push("======= " + e.id + " · " + e.timestamp + mark + " =======\n" + String(e.content || "").replace(/\s+$/, "") + "\n")
   }
   return parts.join("\n")
 }
@@ -142,12 +186,18 @@ if (typeof module !== "undefined") {
     serializeJournal: serializeJournal,
     nextId: nextId,
     isoStamp: isoStamp,
+    entryKind: entryKind,
+    isTodo: isTodo,
     newEntry: newEntry,
+    newTodo: newTodo,
     isBlank: isBlank,
     upsert: upsert,
     dropBlanks: dropBlanks,
     findById: findById,
+    toggleDone: toggleDone,
     preview: preview,
+    previewEntry: previewEntry,
+    indexMark: indexMark,
     matchesQuery: matchesQuery,
     filterEntries: filterEntries,
     notesTxt: notesTxt,

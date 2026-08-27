@@ -38,12 +38,35 @@ Item {
   }
 
   function startNewNote() {
+    startFresh("note")
+  }
+
+  function startNewTodo() {
+    startFresh("todo")
+  }
+
+  function startFresh(kind) {
     entries = Model.dropBlanks(entries, currentId)
     var current = Model.findById(entries, currentId)
-    if (current && Model.isBlank(current)) return
-    var entry = Model.newEntry(new Date(), Model.nextId(entries))
+    if (current && Model.isBlank(current)) {
+      if (Model.entryKind(current) !== kind) {
+        current.kind = kind
+        if (kind === "todo") current.done = false
+        entries = Model.upsert(entries, current)
+        scheduleSave()
+      }
+      return
+    }
+    var entry = kind === "todo"
+      ? Model.newTodo(new Date(), Model.nextId(entries))
+      : Model.newEntry(new Date(), Model.nextId(entries))
     entries = Model.upsert(entries, entry)
     currentId = entry.id
+    scheduleSave()
+  }
+
+  function toggleDone(id) {
+    entries = Model.toggleDone(entries, id)
     scheduleSave()
   }
 

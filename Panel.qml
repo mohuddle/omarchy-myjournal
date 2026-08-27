@@ -27,12 +27,15 @@ Panel {
     for (var i = list.length - 1; i >= 0; i--) out.push(list[i])
     return out
   }
+  readonly property bool currentIsTodo: service && Model.isTodo(service.currentEntry)
+  readonly property bool currentIsDone: currentIsTodo && service.currentEntry.done === true
   readonly property string stampLabel: {
     var entry = service ? service.currentEntry : null
     if (!entry) return ""
     var d = new Date(entry.timestamp)
-    if (isNaN(d.getTime())) return "#" + entry.id + " · " + entry.timestamp
-    return "#" + entry.id + " · " + Qt.formatDateTime(d, "yyyy-MM-dd HH:mm")
+    var when = isNaN(d.getTime()) ? entry.timestamp : Qt.formatDateTime(d, "yyyy-MM-dd HH:mm")
+    var kind = Model.isTodo(entry) ? (entry.done ? "Done · " : "ToDo · ") : ""
+    return "#" + entry.id + " · " + kind + when
   }
 
   function closeForPopoutSwitch() {}
@@ -80,6 +83,16 @@ Panel {
     service.startNewNote()
     syncEditor()
     editor.forceActiveFocus()
+  }
+  function newTodo() {
+    if (!service) return
+    service.startNewTodo()
+    syncEditor()
+    editor.forceActiveFocus()
+  }
+  function toggleTodo(id) {
+    if (!service) return
+    service.toggleDone(id)
   }
 
   Connections {
@@ -162,16 +175,24 @@ Panel {
             width: parent.width
             spacing: Style.space(8)
             Button {
+              id: newBtn
               text: "New"
               bordered: true
               foreground: root.foreground
               onClicked: root.newNote()
             }
+            Button {
+              id: todoBtn
+              text: "ToDo"
+              bordered: true
+              foreground: root.accent
+              onClicked: root.newTodo()
+            }
             TextField {
               id: searchField
-              width: parent.width - Style.space(88)
+              width: Math.max(Style.space(80), parent.width - newBtn.width - todoBtn.width - parent.spacing * 2)
               foreground: root.foreground
-              placeholderText: "Search notes"
+              placeholderText: "Search"
               text: root.searchText
               onTextChanged: root.searchText = text
             }
@@ -184,7 +205,7 @@ Panel {
 
             ListView {
               id: indexList
-              width: Style.space(168)
+              width: Style.space(176)
               height: parent.height
               clip: true
               spacing: Style.space(2)
@@ -194,19 +215,51 @@ Panel {
                 required property var modelData
                 width: indexList.width
                 height: Style.space(44)
+                readonly property bool rowTodo: Model.isTodo(modelData)
+                readonly property bool rowDone: rowTodo && modelData.done === true
+                readonly property bool rowActive: root.service && root.service.currentId === String(modelData.id)
+                readonly property color rowColor: rowDone ? root.muted : (rowActive ? root.accent : root.foreground)
+
                 Text {
-                  anchors.fill: parent
-                  anchors.margins: Style.space(4)
+                  id: mark
+                  visible: rowTodo
+                  width: visible ? Style.space(28) : 0
+                  height: parent.height
                   textFormat: Text.PlainText
-                  text: "#" + modelData.id + "\n" + Model.preview(modelData.content, 42)
-                  color: root.service && root.service.currentId === String(modelData.id) ? root.accent : root.foreground
+                  text: Model.indexMark(modelData).trim()
+                  color: rowColor
+                  font.family: root.fontFamily
+                  font.pixelSize: Style.font.body
+                  verticalAlignment: Text.AlignVCenter
+                  MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.toggleTodo(modelData.id)
+                  }
+                }
+                Text {
+                  anchors.left: mark.right
+                  anchors.right: parent.right
+                  anchors.top: parent.top
+                  anchors.bottom: parent.bottom
+                  anchors.leftMargin: rowTodo ? Style.space(2) : Style.space(4)
+                  anchors.rightMargin: Style.space(4)
+                  anchors.topMargin: Style.space(4)
+                  anchors.bottomMargin: Style.space(4)
+                  textFormat: Text.PlainText
+                  text: "#" + modelData.id + "\n" + Model.previewEntry(modelData, 36)
+                  color: rowColor
                   font.family: root.fontFamily
                   font.pixelSize: Style.font.caption
+                  font.strikeout: rowDone
                   wrapMode: Text.NoWrap
                   elide: Text.ElideRight
                 }
                 MouseArea {
-                  anchors.fill: parent
+                  anchors.left: mark.right
+                  anchors.right: parent.right
+                  anchors.top: parent.top
+                  anchors.bottom: parent.bottom
                   cursorShape: Qt.PointingHandCursor
                   onClicked: root.openEntry(modelData.id)
                 }
@@ -218,18 +271,34 @@ Panel {
               height: parent.height
               spacing: Style.space(6)
 
-              Text {
+              Row {
+                id: editorHeader
                 width: parent.width
-                textFormat: Text.PlainText
-                text: root.stampLabel
-                color: root.muted
-                font.family: root.fontFamily
-                font.pixelSize: Style.font.caption
+                spacing: Style.space(8)
+                Text {
+                  id: stampText
+                  width: Math.max(0, parent.width - (doneBtn.visible ? doneBtn.width + parent.spacing : 0))
+                  textFormat: Text.PlainText
+                  text: root.stampLabel
+                  color: root.muted
+                  font.family: root.fontFamily
+                  font.pixelSize: Style.font.caption
+                  elide: Text.ElideRight
+                  anchors.verticalCenter: parent.verticalCenter
+                }
+                Button {
+                  id: doneBtn
+                  visible: root.currentIsTodo
+                  text: root.currentIsDone ? "Reopen" : "Done"
+                  bordered: true
+                  foreground: root.foreground
+                  onClicked: if (root.service) root.service.toggleDone(root.service.currentId)
+                }
               }
 
               BorderSurface {
                 width: parent.width
-                height: parent.height - Style.space(22)
+                height: Math.max(0, parent.height - editorHeader.height - parent.spacing)
                 color: "transparent"
                 borderSpec: Border.controlSpec(editor.activeFocus ? "focus" : "normal", root.foreground, root.accent)
                 radius: Style.cornerRadius
