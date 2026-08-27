@@ -171,14 +171,17 @@ Panel {
             }
           }
 
-          Row {
+          Item {
             width: parent.width
-            spacing: Style.space(8)
+            height: Math.max(newBtn.implicitHeight, todoBtn.implicitHeight, searchField.implicitHeight)
+
             Button {
               id: newBtn
               text: "New"
               bordered: true
               foreground: root.foreground
+              anchors.left: parent.left
+              anchors.verticalCenter: parent.verticalCenter
               onClicked: root.newNote()
             }
             Button {
@@ -186,11 +189,17 @@ Panel {
               text: "ToDo"
               bordered: true
               foreground: root.accent
+              anchors.left: newBtn.right
+              anchors.leftMargin: Style.space(8)
+              anchors.verticalCenter: parent.verticalCenter
               onClicked: root.newTodo()
             }
             TextField {
               id: searchField
-              width: Math.max(Style.space(80), parent.width - newBtn.width - todoBtn.width - parent.spacing * 2)
+              anchors.left: todoBtn.right
+              anchors.right: parent.right
+              anchors.leftMargin: Style.space(8)
+              anchors.verticalCenter: parent.verticalCenter
               foreground: root.foreground
               placeholderText: "Search"
               text: root.searchText
