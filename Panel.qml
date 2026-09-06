@@ -283,8 +283,9 @@ Panel {
                 width: parent.width
                 foreground: root.foreground
                 placeholderText: "Search"
+                maximumLength: Model.MAX_SEARCH
                 text: root.searchText
-                onTextChanged: root.searchText = text
+                onTextChanged: root.searchText = text.length > Model.MAX_SEARCH ? text.substring(0, Model.MAX_SEARCH) : text
               }
 
               Row {
@@ -338,7 +339,11 @@ Panel {
                     selectedTextColor: root.foreground
                     selectionColor: Style.selectionFillFor(root.foreground, root.accent)
                     textFormat: TextEdit.PlainText
-                    onTextChanged: if (activeFocus && root.service) root.service.setContent(text)
+                    onTextChanged: {
+                      if (text.length > Model.MAX_CONTENT)
+                        text = text.substring(0, Model.MAX_CONTENT)
+                      if (activeFocus && root.service) root.service.setContent(text)
+                    }
                   }
                 }
               }

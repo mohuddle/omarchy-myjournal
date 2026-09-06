@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.mohuddle.myjournal",
   "name": "My Journal",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": "mohuddle",
   "description": "Stream-of-consciousness journal with dated notes, checkable todos, searchable history, and autosave to JSON.",
   "license": "MIT",

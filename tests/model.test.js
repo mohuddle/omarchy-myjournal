@@ -3,6 +3,10 @@ const model = require("../Model.js")
 
 assert.deepEqual(model.parseJournal("[]"), [])
 assert.equal(model.parseJournal("not-json"), null)
+assert.deepEqual(model.parseJournal(""), [])
+assert.equal(model.parseJournal(JSON.stringify(Array.from({ length: 401 }, (_, i) => ({ id: String(i + 1), timestamp: "t", content: "x" })))), null)
+assert.equal(model.parseJournal(JSON.stringify([{ id: "abc", timestamp: "t", content: "x" }])), null)
+assert.equal(model.parseJournal(JSON.stringify([{ id: "1", timestamp: "t", content: "x".repeat(model.MAX_CONTENT + 1) }])), null)
 assert.equal(model.nextId([]), "1")
 assert.equal(model.nextId([{ id: "2" }, { id: "9" }]), "10")
 

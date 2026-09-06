@@ -2,19 +2,51 @@
 // under node. Each entry is { id, timestamp, content, kind, done? }.
 // kind is "note" (default) or "todo". done is only stored on todos.
 
+var MAX_ENTRIES = 400
+var MAX_CONTENT = 16384
+var MAX_SEARCH = 200
+var MAX_ID = 16
+var MAX_TIMESTAMP = 40
+var MAX_BYTES = 262144
+var ID_RE = /^[0-9]{1,16}$/
+
+function clipContent(text) {
+  var s = String(text || "")
+  return s.length <= MAX_CONTENT ? s : s.substring(0, MAX_CONTENT)
+}
+
 function parseJournal(raw) {
+  var source = String(raw || "")
+  if (source.length > MAX_BYTES) return null
+  var trimmed = source.replace(/^\s+|\s+$/g, "")
+  if (trimmed === "") return []
   try {
-    var value = JSON.parse(String(raw || "[]"))
-    if (Array.isArray(value)) return value.filter(isEntry)
-    if (value && Array.isArray(value.entries)) return value.entries.filter(isEntry)
-    return []
+    var value = JSON.parse(trimmed)
+    var rows
+    if (Array.isArray(value)) rows = value
+    else if (value && Array.isArray(value.entries)) rows = value.entries
+    else return null
+    if (rows.length > MAX_ENTRIES) return null
+    var out = []
+    for (var i = 0; i < rows.length; i++) {
+      if (!isEntry(rows[i])) return null
+      out.push(copyEntry(rows[i]))
+    }
+    return out
   } catch (e) {
     return null
   }
 }
 
 function isEntry(item) {
-  return item && typeof item === "object" && item.id !== undefined && item.id !== null
+  if (!item || typeof item !== "object") return false
+  var ident = String(item.id)
+  if (!ID_RE.test(ident)) return false
+  if (String(item.timestamp || "").length > MAX_TIMESTAMP) return false
+  if (String(item.content || "").length > MAX_CONTENT) return false
+  if (item.kind !== undefined && item.kind !== "note" && item.kind !== "todo") return false
+  if (item.done !== undefined && typeof item.done !== "boolean") return false
+  return true
 }
 
 function serializeJournal(entries) {
@@ -70,7 +102,7 @@ function copyEntry(entry) {
   var out = {
     id: String(entry.id),
     timestamp: String(entry.timestamp || ""),
-    content: String(entry.content || ""),
+    content: clipContent(entry.content),
     kind: entryKind(entry)
   }
   if (out.kind === "todo") out.done = !!entry.done
@@ -138,7 +170,9 @@ function indexMark(entry) {
 }
 
 function matchesQuery(entry, query) {
-  var q = String(query || "").trim().toLowerCase()
+  var q = String(query || "")
+  if (q.length > MAX_SEARCH) q = q.substring(0, MAX_SEARCH)
+  q = q.trim().toLowerCase()
   if (q === "") return true
   if (!entry) return false
   var hay = String(entry.id).toLowerCase()
@@ -182,6 +216,10 @@ function fileUrlToPath(url) {
 
 if (typeof module !== "undefined") {
   module.exports = {
+    MAX_ENTRIES: MAX_ENTRIES,
+    MAX_CONTENT: MAX_CONTENT,
+    MAX_SEARCH: MAX_SEARCH,
+    MAX_BYTES: MAX_BYTES,
     parseJournal: parseJournal,
     serializeJournal: serializeJournal,
     nextId: nextId,
@@ -201,6 +239,7 @@ if (typeof module !== "undefined") {
     matchesQuery: matchesQuery,
     filterEntries: filterEntries,
     notesTxt: notesTxt,
+    clipContent: clipContent,
     fileUrlToPath: fileUrlToPath
   }
 }

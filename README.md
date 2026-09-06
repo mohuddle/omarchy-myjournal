@@ -11,10 +11,10 @@ Plugin id: `io.github.mohuddle.myjournal`
 - Opening the panel creates a new empty note, stamps it with the current date and time, and puts the cursor on a blank line.
 - **New** starts another journal session. **ToDo** starts a checkable task in the same index.
 - Search filters the index. Click a row to reopen that entry. Click `[ ]` / `[x]` (or **Done** / **Reopen**) to toggle a todo.
-- Autosave (about a second after typing, and again on close) writes the full entry list to `journal.json` and `notes.txt`.
+- Autosave (about a second after typing, and again on close) writes the full entry list to `journal.json` and `notes.txt` through a small Python helper. Files are mode `0600` in a `0700` directory.
 - The window stays pinned on top across workspaces until you click the notebook icon again.
 
-No Omarchy keybindings are changed. Encryption is not included in this release.
+No Omarchy keybindings are changed. No network. Encryption is not included in this release. Python 3 (stdlib only) is used to read and write the journal files.
 
 ## Data
 
@@ -71,10 +71,11 @@ omarchy bar move io.github.mohuddle.myjournal --section right
 omarchy plugin remove io.github.mohuddle.myjournal
 ```
 
-Journal files under `~/.local/state/omarchy/myjournal/` are left in place. To start over:
+That removes the widget. Journal files are kept:
 
-```bash
-rm -rf ~/.local/state/omarchy/myjournal
+```
+~/.local/state/omarchy/myjournal/journal.json
+~/.local/state/omarchy/myjournal/notes.txt
 ```
 
 ## Development checks
@@ -82,6 +83,7 @@ rm -rf ~/.local/state/omarchy/myjournal
 ```bash
 omarchy plugin validate .
 node tests/model.test.js
+python3 tests/test_store.py
 ```
 
 ## License
