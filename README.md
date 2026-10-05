@@ -89,3 +89,6 @@ python3 tests/test_store.py
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+---
+Made by [Mobitecture](https://github.com/mohuddle) · apps, architected.
